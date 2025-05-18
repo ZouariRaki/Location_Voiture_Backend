@@ -1,4 +1,5 @@
 package com.projet.locationvoiture.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,6 +21,7 @@ public class Agence {
     private byte[] logo;
     private String description;
     @OneToMany(mappedBy = "agence")
+    @JsonIgnore
     private List<Car> vehicules;
 
     @OneToOne

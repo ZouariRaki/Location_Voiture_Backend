@@ -17,8 +17,7 @@ public class CarDto {
     private boolean climatisation;
     private double prixJour;
     private double caution;
+    private byte[] rimage;
     private MultipartFile image;
-    private byte[] multipartFile;
-    private Long agenceId;
 
 }

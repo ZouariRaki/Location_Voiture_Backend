@@ -44,9 +44,6 @@ public class AgenceService {
         return true;
     }
 
-    public List<Car> getCarsByAgence(Long agenceId) {
-        return carRepository.findByAgenceId(agenceId);
-    }
     public boolean addAgence(AgenceDto dto) throws IOException {
         try {
             Agence agence = new Agence();

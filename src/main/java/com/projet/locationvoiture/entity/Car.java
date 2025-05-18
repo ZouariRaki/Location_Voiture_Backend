@@ -31,6 +31,7 @@ public class Car {
 
     @ManyToOne
     @JoinColumn(name = "agence_id")
+    @JsonIgnore
     private Agence agence;
 
     @OneToMany(mappedBy = "car")

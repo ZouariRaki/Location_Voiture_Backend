@@ -30,8 +30,8 @@ public class CarController {
         }
     }
     @GetMapping("all")
-    public ResponseEntity<List<Car>> getAllCars() {
-        return ResponseEntity.ok(carService.getAllCars());
+    public List<CarDto> getAllCars() {
+        return carService.getAllCars();
     }
 
     @GetMapping("{id}")
@@ -60,5 +60,22 @@ public class CarController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
+
+    @PostMapping(value = "/add/{userId}")
+    public ResponseEntity<?> addCarForUser(@ModelAttribute CarDto carDto, @PathVariable Long userId) throws IOException {
+        boolean success = carService.addCarForUserId(carDto, userId);
+        if (success) {
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<CarDto>> getCarsByUser(@PathVariable Long userId) {
+        List<CarDto> cars = carService.getCarsByUser(userId);
+        return ResponseEntity.ok(cars);
+    }
+
 
 }

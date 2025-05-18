@@ -35,7 +35,8 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
-
+    @OneToOne(mappedBy = "user")
+    private Agence agence;
     private boolean enabled = false;
     @Enumerated(EnumType.STRING)
     private AccountStatus status = AccountStatus.PENDING;

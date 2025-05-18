@@ -61,8 +61,5 @@ public class AgenceController {
         return success ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
 
-    @GetMapping("/{agenceId}/cars")
-    public ResponseEntity<List<Car>> getAgenceCars(@PathVariable Long agenceId) {
-        return ResponseEntity.ok(agenceService.getCarsByAgence(agenceId));
-    }
+
 }

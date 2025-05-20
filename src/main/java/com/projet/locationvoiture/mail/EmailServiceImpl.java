@@ -74,12 +74,7 @@ public class EmailServiceImpl implements EmailService {
 
             // Creating a helper for the MimeMessage
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            // Setting up necessary details
-           /* mailMessage.setFrom(sender);
-            mailMessage.setTo(to);
-            mailMessage.setText(text);
-            mailMessage.setSubject(subject);*/
-            // Setting up necessary details
+
             helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject(subject);
@@ -88,10 +83,6 @@ public class EmailServiceImpl implements EmailService {
             // Sending the mail
             javaMailSender.send(message);
             return "Mail Sent Successfully...";
-
-            // Sending the mail
-          /*  javaMailSender.send(mailMessage);
-            return "Mail Sent Successfully...";*/
         }
 
         // Catch block to handle the exceptions
@@ -141,6 +132,19 @@ public class EmailServiceImpl implements EmailService {
             // Display message when exception occurred
             return "Error while sending mail!!!";
         }
+    }
+    public void sendPasswordResetEmail(User user, String resetToken) {
+        String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
+
+        String subject = "Réinitialisation de votre mot de passe";
+        String content = "Bonjour " + user.getPrenom() + ",\n\n"
+                + "Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous :\n"
+                + resetLink + "\n\n"
+                + "Ce lien expirera dans 1 heure.\n"
+                + "Si vous n'avez pas fait cette demande, ignorez cet email.\n\n"
+                + "Cordialement,\nL'équipe Location Voiture";
+
+        sendSimpleMail(user.getEmail(), subject, content);
     }
 
 }

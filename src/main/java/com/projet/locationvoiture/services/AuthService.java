@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
+    private static final long PASSWORD_RESET_EXPIRATION = 3600000;
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
@@ -194,6 +195,36 @@ public class AuthService {
 
     public List<User> listUsers() {
         return userRepository.findAll();
+    }
+
+    public void requestPasswordReset(PasswordResetRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Aucun compte associé à cet email"));
+
+        String resetToken = UUID.randomUUID().toString();
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(new Date(System.currentTimeMillis() + PASSWORD_RESET_EXPIRATION));
+        userRepository.save(user);
+
+        try {
+            emailService.sendPasswordResetEmail(user, resetToken);
+        } catch (Exception e) {
+            throw new RuntimeException("Échec de l'envoi de l'email de réinitialisation");
+        }
+    }
+
+    public void resetPassword(NewPasswordRequest request) {
+        User user = userRepository.findByResetToken(request.getToken())
+                .orElseThrow(() -> new RuntimeException("Token invalide ou expiré"));
+
+        if (user.getResetTokenExpiry().before(new Date())) {
+            throw new RuntimeException("Token expiré");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
     }
 
 

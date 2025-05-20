@@ -21,8 +21,5 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Erreur : " + e.getMessage());
         }
     }
-    @GetMapping("/admin/test")
-    public ResponseEntity<String> testAdmin() {
-        return ResponseEntity.ok("Access granted!");
-    }
+
 }

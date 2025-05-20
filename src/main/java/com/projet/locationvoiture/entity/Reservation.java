@@ -3,6 +3,7 @@ package com.projet.locationvoiture.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -12,23 +13,27 @@ public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private LocalDateTime dateDebut;
+    private LocalDateTime dateFin;
+    private Double montant;
+    @Column(updatable = false)
+    private LocalDateTime dateCreation; // Pour audit
 
-    @Temporal(TemporalType.DATE)
-    private Date dateDebut;
-
-    @Temporal(TemporalType.DATE)
-    private Date dateFin;
-
-    private double prixTotal;
-    private String statut;
+    @PrePersist
+    protected void onCreate() {
+        this.dateCreation = LocalDateTime.now();
+    }
+    @Enumerated(EnumType.STRING)
+    private StatutReservation statut;
 
     @ManyToOne
-    @JoinColumn(name = "client_id")
     private Client client;
 
     @ManyToOne
-    @JoinColumn(name = "vehicule_id")
-    private Car car;
+    private Car vehicule;
+
+    @ManyToOne
+    private Agence agence;
 
     @OneToOne(mappedBy = "reservation", cascade = CascadeType.ALL)
     private Paiement paiement;

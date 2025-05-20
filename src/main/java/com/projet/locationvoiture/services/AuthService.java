@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -87,7 +88,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setAdresse(request.getAdresse());
         user.setTelephone(request.getTelephone());
-        user.setEnabled(false); // si tu veux une vérification email
+        user.setEnabled(false);
         user.setVerificationToken(UUID.randomUUID().toString());
 
         userRepository.save(user);
@@ -189,6 +190,10 @@ public class AuthService {
                 .role(firstRole)
                 .id(user.getId())
                 .build();
+    }
+
+    public List<User> listUsers() {
+        return userRepository.findAll();
     }
 
 

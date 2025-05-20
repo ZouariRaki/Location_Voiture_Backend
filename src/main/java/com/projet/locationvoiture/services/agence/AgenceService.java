@@ -24,7 +24,6 @@ public class AgenceService {
         if (agenceOpt.isEmpty()) {
             return false;
         }
-
         Car car = new Car();
         car.setMarque(carDto.getMarque());
         car.setModele(carDto.getModele());

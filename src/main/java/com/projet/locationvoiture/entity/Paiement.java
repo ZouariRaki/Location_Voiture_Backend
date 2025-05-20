@@ -3,6 +3,7 @@ package com.projet.locationvoiture.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -12,15 +13,14 @@ public class Paiement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Double montant;
+    private LocalDateTime date;
+    private String moyenPaiement;
 
-    private double montant;
-    private String methode;
-    private String statut;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+    @Enumerated(EnumType.STRING)
+    private StatutPaiement statut;
 
     @OneToOne
-    @JoinColumn(name = "reservation_id")
+    @JoinColumn(name = "reservation_id") // Meilleure pratique pour le owner de la relation
     private Reservation reservation;
 }

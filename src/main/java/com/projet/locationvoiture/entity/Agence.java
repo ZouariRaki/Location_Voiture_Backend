@@ -12,7 +12,6 @@ public class Agence {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nom;
     private String adresse;
     private String telephone;
@@ -20,10 +19,12 @@ public class Agence {
     @Column(columnDefinition = "longblob")
     private byte[] logo;
     private String description;
+
     @OneToMany(mappedBy = "agence")
     @JsonIgnore
     private List<Car> vehicules;
-
+    @OneToMany(mappedBy = "agence")
+    private List<Reservation> reservations;
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;

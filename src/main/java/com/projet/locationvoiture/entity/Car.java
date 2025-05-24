@@ -30,20 +30,16 @@ public class Car {
     private byte[] image;
     @PositiveOrZero
     private double caution;
-
     @NotNull
-    private Boolean disponible; // boolean -> Boolean pour éviter false par défaut
-
-    // Dans Reservation.java
-    @NotNull
-    private StatutReservation statut = StatutReservation.EN_ATTENTE;
+    private Boolean disponible;
+    @Column(nullable = false)
+    private String statut = "AVAILABLE";
     @ManyToOne
     @JoinColumn(name = "agence_id")
     @JsonIgnore
     private Agence agence;
 
-    @OneToMany(mappedBy = "car")
-    private List<Disponibilite> disponibilites;
+
 
     @OneToMany(mappedBy = "vehicule")
     private List<Reservation> reservations;

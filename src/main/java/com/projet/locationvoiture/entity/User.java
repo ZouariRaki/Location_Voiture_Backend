@@ -1,4 +1,5 @@
 package com.projet.locationvoiture.entity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,6 +38,7 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
     @OneToOne(mappedBy = "user")
+    @JsonIgnore
     private Agence agence;
     private boolean enabled = false;
     @Enumerated(EnumType.STRING)
@@ -71,5 +73,9 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+    @Override
+    public String toString() {
+        return "User{id=" + id + ", email=" + email + "}";
     }
 }

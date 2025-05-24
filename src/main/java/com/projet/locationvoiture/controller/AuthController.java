@@ -2,6 +2,7 @@ package com.projet.locationvoiture.controller;
 
 import com.projet.locationvoiture.dto.*;
 import com.projet.locationvoiture.services.AuthService;
+import com.projet.locationvoiture.services.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
+    private final UserService userService;
     private final AuthService authService;
 
     @PostMapping("/register")
@@ -64,5 +65,10 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody NewPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok().build();
+    }
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        UserDto userDto = userService.getCurrentUser(authHeader);
+        return ResponseEntity.ok(userDto);
     }
 }

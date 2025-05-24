@@ -11,9 +11,14 @@ import java.util.List;
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long> {
 
-    @Query("SELECT c FROM Car c WHERE c.agence.user.id = :userId")
-    List<Car> findAllByUserId(@Param("userId") Long userId);
+    List<Car> findByDisponibleTrue(); // voitures disponibles
 
-    List<Car> findByAgenceUserId(Long userId);
+    List<Car> findByAgenceId(Long agenceId); // voitures d'une agence
+
+    List<Car> findByMarqueContainingIgnoreCase(String marque); // recherche par marque
+
+    List<Car> findByModeleContainingIgnoreCase(String modele); // recherche par modèle
+
+    List<Car> findByPrixJourBetween(double min, double max); // filtre par prix
 
 }

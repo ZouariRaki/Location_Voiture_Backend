@@ -15,21 +15,24 @@ public class Reservation {
     private Long id;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFin;
+    @Enumerated(EnumType.STRING)
+    private StatutReservation statut;
+
     private Double montant;
     @Column(updatable = false)
-    private LocalDateTime dateCreation; // Pour audit
+    private LocalDateTime dateCreation;
 
     @PrePersist
     protected void onCreate() {
         this.dateCreation = LocalDateTime.now();
     }
-    @Enumerated(EnumType.STRING)
-    private StatutReservation statut;
 
     @ManyToOne
-    private Client client;
+    @JoinColumn(name = "user_id")
+    private User client;
 
     @ManyToOne
+    @JoinColumn(name = "car_id")
     private Car vehicule;
 
     @ManyToOne

@@ -15,9 +15,11 @@ public class CarDto {
     private int sieges;
     private int portes;
     private boolean climatisation;
+    private boolean disponible;
     private double prixJour;
     private double caution;
     private byte[] rimage;
     private MultipartFile image;
+    private Long agenceId;
 
 }

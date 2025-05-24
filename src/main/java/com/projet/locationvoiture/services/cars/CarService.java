@@ -5,138 +5,115 @@ import com.projet.locationvoiture.entity.Agence;
 import com.projet.locationvoiture.entity.Car;
 import com.projet.locationvoiture.repository.AgenceRepository;
 import com.projet.locationvoiture.repository.CarRepository;
-import com.projet.locationvoiture.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CarService {
 
-    @Autowired
-    private CarRepository carRepository;
-@Autowired
-private UserRepository userRepository;
-@Autowired
-private AgenceRepository agenceRepository;
-    public boolean addCar(CarDto carDto) throws IOException {
+    private final CarRepository carRepository;
+    private final AgenceRepository agenceRepository;
+
+    public boolean createCar(CarDto carDto) {
         try {
-            Car car = new Car();
-            car.setMarque(carDto.getMarque());
-            car.setModele(carDto.getModele());
-            car.setAnnee(carDto.getAnnee());
-            car.setType(carDto.getType());
-            car.setCarburant(carDto.getCarburant());
-            car.setTransmission(carDto.getTransmission());
-            car.setSieges(carDto.getSieges());
-            car.setPortes(carDto.getPortes());
-            car.setClimatisation(carDto.isClimatisation());
-            car.setPrixJour(carDto.getPrixJour());
-            car.setCaution(carDto.getCaution());
-            car.setImage(carDto.getImage().getBytes());
+            Optional<Agence> agenceOpt = agenceRepository.findById(carDto.getAgenceId());
+            if (agenceOpt.isEmpty()) return false;
+
+            Car car = convertToEntity(carDto);
+            car.setAgence(agenceOpt.get());
+
+            MultipartFile image = carDto.getImage();
+            if (image != null && !image.isEmpty()) {
+                car.setImage(image.getBytes());
+            }
+
             carRepository.save(car);
             return true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             return false;
         }
     }
 
-    // Dans CarService
     public List<CarDto> getAllCars() {
-        List<Car> cars = carRepository.findAll();
-        return cars.stream().map(this::convertToDto).toList();
+        return carRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    private CarDto convertToDto(Car cars) {
-        CarDto carDto = new CarDto();
-        carDto.setId(cars.getId());
-        carDto.setMarque(cars.getMarque());
-        carDto.setModele(cars.getModele());
-        carDto.setAnnee(cars.getAnnee());
-        carDto.setType(cars.getType());
-        carDto.setCarburant(cars.getCarburant());
-        carDto.setTransmission(cars.getTransmission());
-        carDto.setSieges(cars.getSieges());
-        carDto.setPortes(cars.getPortes());
-        carDto.setClimatisation(cars.isClimatisation());
-        carDto.setPrixJour(cars.getPrixJour());
-        carDto.setCaution(cars.getCaution());
-        carDto.setRimage(cars.getImage()); // L'image est déjà en byte[]
-        return carDto;
+    public List<CarDto> getAvailableCars() {
+        return carRepository.findByDisponibleTrue().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Car> getCarById(Long id) {
-        return carRepository.findById(id);
+    public List<CarDto> getCarsByMarque(String marque) {
+        return carRepository.findByMarqueContainingIgnoreCase(marque).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    public boolean updateCar(Long id, CarDto carDto) throws IOException {
-        Optional<Car> optionalCar = carRepository.findById(id);
-        if (optionalCar.isPresent()) {
-            Car car = optionalCar.get();
-            car.setMarque(carDto.getMarque());
-            car.setModele(carDto.getModele());
-            car.setAnnee(carDto.getAnnee());
-            car.setType(carDto.getType());
-            car.setCarburant(carDto.getCarburant());
-            car.setTransmission(carDto.getTransmission());
-            car.setSieges(carDto.getSieges());
-            car.setPortes(carDto.getPortes());
-            car.setClimatisation(carDto.isClimatisation());
-            car.setPrixJour(carDto.getPrixJour());
-            car.setCaution(carDto.getCaution());
-            car.setImage(carDto.getImage().getBytes());
-            carRepository.save(car);
+    public List<CarDto> getCarsByModele(String modele) {
+        return carRepository.findByModeleContainingIgnoreCase(modele).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<CarDto> getCarsByPrixRange(double min, double max) {
+        return carRepository.findByPrixJourBetween(min, max).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public boolean deleteCar(Long carId) {
+        if (carRepository.existsById(carId)) {
+            carRepository.deleteById(carId);
             return true;
         }
         return false;
     }
 
-    public boolean deleteCar(Long id) {
-        if (carRepository.existsById(id)) {
-            carRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-public boolean addCarForUserId(CarDto carDto, Long userId) throws IOException {
-    try {
-        // Récupérer l'agence liée à l'utilisateur
-        Agence agence = agenceRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Agence introuvable pour l'utilisateur ID : " + userId));
-
+    private Car convertToEntity(CarDto dto) {
         Car car = new Car();
-        car.setMarque(carDto.getMarque());
-        car.setModele(carDto.getModele());
-        car.setAnnee(carDto.getAnnee());
-        car.setType(carDto.getType());
-        car.setCarburant(carDto.getCarburant());
-        car.setTransmission(carDto.getTransmission());
-        car.setSieges(carDto.getSieges());
-        car.setPortes(carDto.getPortes());
-        car.setClimatisation(carDto.isClimatisation());
-        car.setPrixJour(carDto.getPrixJour());
-        car.setCaution(carDto.getCaution());
-
-        // Convertir MultipartFile en byte[]
-        if (carDto.getImage() != null && !carDto.getImage().isEmpty()) {
-            car.setImage(carDto.getImage().getBytes());
-        }
-
-        // Associer l’agence
-        car.setAgence(agence);
-
-        carRepository.save(car);
-        return true;
-    } catch (Exception e) {
-        return false;
-    }
-}
-    public List<CarDto> getCarsByUser(Long userId) {
-        List<Car> cars = carRepository.findByAgenceUserId(userId);
-        return cars.stream().map(this::convertToDto).toList();
+        car.setId(dto.getId());
+        car.setMarque(dto.getMarque());
+        car.setModele(dto.getModele());
+        car.setAnnee(dto.getAnnee());
+        car.setType(dto.getType());
+        car.setCarburant(dto.getCarburant());
+        car.setTransmission(dto.getTransmission());
+        car.setSieges(dto.getSieges());
+        car.setPortes(dto.getPortes());
+        car.setClimatisation(dto.isClimatisation());
+        car.setPrixJour(dto.getPrixJour());
+        car.setCaution(dto.getCaution());
+        car.setDisponible(dto.isDisponible());
+        return car;
     }
 
+    private CarDto convertToDto(Car car) {
+        CarDto dto = new CarDto();
+        dto.setId(car.getId());
+        dto.setMarque(car.getMarque());
+        dto.setModele(car.getModele());
+        dto.setAnnee(car.getAnnee());
+        dto.setType(car.getType());
+        dto.setCarburant(car.getCarburant());
+        dto.setTransmission(car.getTransmission());
+        dto.setSieges(car.getSieges());
+        dto.setPortes(car.getPortes());
+        dto.setClimatisation(car.isClimatisation());
+        dto.setPrixJour(car.getPrixJour());
+        dto.setCaution(car.getCaution());
+        dto.setAgenceId(car.getAgence() != null ? car.getAgence().getId() : null);
+        dto.setDisponible(car.getDisponible());
+        dto.setRimage(car.getImage());
+        return dto;
+    }
 }

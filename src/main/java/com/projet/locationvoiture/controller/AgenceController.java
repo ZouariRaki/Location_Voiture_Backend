@@ -53,13 +53,6 @@ public class AgenceController {
         return success ? ResponseEntity.noContent().build()
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-    @PostMapping("/{agenceId}/cars")
-    public ResponseEntity<?> addCarToAgence(
-            @PathVariable Long agenceId,
-            @ModelAttribute CarDto carDto) throws IOException {
-        boolean success = agenceService.addCarToAgence(carDto, agenceId);
-        return success ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
-    }
 
 
 }

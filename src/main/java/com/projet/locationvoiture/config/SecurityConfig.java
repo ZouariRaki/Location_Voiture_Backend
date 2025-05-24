@@ -38,9 +38,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Disable CSRF
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/swagger-ui/**","/api/car/**","/api/agences/**","/api/admin/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/car/**","/api/agences/**","/api/admin/**").hasRole("ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.POST, "/api/car/**","/api/agences/**","/api/admin/**").hasRole("AGENCE")
+                        .requestMatchers("/api/auth/**","/api/car/**","/api/agences/**","/api/admin/**","/api/reservations/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/agences/**","/api/admin/**").hasRole("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyRole("AGENCE", "ClIENT", "ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.GET, "/api/car/**").hasAnyRole("AGENCE", "ClIENT", "ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.PUT, "/api/agences/**").hasRole("ADMINISTRATEUR")
                         .anyRequest().authenticated()
                 )

@@ -9,5 +9,4 @@ import java.util.Optional;
 @Repository
 public interface AgenceRepository extends JpaRepository<Agence, Long> {
     Optional<Agence> findByUserId(Long userId);
-
 }

@@ -1,17 +1,15 @@
 package com.projet.locationvoiture.controller;
 
-
 import com.projet.locationvoiture.dto.CarDto;
-import com.projet.locationvoiture.entity.Car;
 import com.projet.locationvoiture.services.cars.CarService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestPart;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/car")
@@ -20,62 +18,48 @@ public class CarController {
 
     private final CarService carService;
 
-    @PostMapping("addCar")
-    public ResponseEntity<?> addCar (@ModelAttribute CarDto carDto) throws IOException {
-        boolean success = carService.addCar(carDto);
-        if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        }else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-    @GetMapping("all")
-    public List<CarDto> getAllCars() {
-        return carService.getAllCars();
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity<Car> getCarById(@PathVariable Long id) {
-        Optional<Car> car = carService.getCarById(id);
-        return car.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("update/{id}")
-    public ResponseEntity<?> updateCar(@PathVariable Long id, @ModelAttribute CarDto carDto) throws IOException {
-        boolean success = carService.updateCar(id, carDto);
-        if (success) {
-            return ResponseEntity.ok().build();
+    @PostMapping
+    public ResponseEntity<?> createCar(@ModelAttribute CarDto carDto) {
+        boolean created = carService.createCar(carDto);
+        if (created) {
+            return ResponseEntity.ok("Voiture ajoutée avec succès.");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.badRequest().body("Erreur lors de l'ajout de la voiture.");
         }
     }
 
-    @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> deleteCar(@PathVariable Long id) {
-        boolean success = carService.deleteCar(id);
-        if (success) {
-            return ResponseEntity.noContent().build();
+    @GetMapping
+    public ResponseEntity<List<CarDto>> getAllCars() {
+        return ResponseEntity.ok(carService.getAllCars());
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<CarDto>> getAvailableCars() {
+        return ResponseEntity.ok(carService.getAvailableCars());
+    }
+
+    @GetMapping("/search/marque")
+    public ResponseEntity<List<CarDto>> searchByMarque(@RequestParam String marque) {
+        return ResponseEntity.ok(carService.getCarsByMarque(marque));
+    }
+
+    @GetMapping("/search/modele")
+    public ResponseEntity<List<CarDto>> searchByModele(@RequestParam String modele) {
+        return ResponseEntity.ok(carService.getCarsByModele(modele));
+    }
+
+    @GetMapping("/search/prix")
+    public ResponseEntity<List<CarDto>> searchByPrix(@RequestParam double min, @RequestParam double max) {
+        return ResponseEntity.ok(carService.getCarsByPrixRange(min, max));
+    }
+
+    @DeleteMapping("/{carId}")
+    public ResponseEntity<?> deleteCar(@PathVariable Long carId) {
+        boolean deleted = carService.deleteCar(carId);
+        if (deleted) {
+            return ResponseEntity.ok("Voiture supprimée.");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.badRequest().body("Voiture non trouvée.");
         }
     }
-
-    @PostMapping(value = "/add/{userId}")
-    public ResponseEntity<?> addCarForUser(@ModelAttribute CarDto carDto, @PathVariable Long userId) throws IOException {
-        boolean success = carService.addCarForUserId(carDto, userId);
-        if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<CarDto>> getCarsByUser(@PathVariable Long userId) {
-        List<CarDto> cars = carService.getCarsByUser(userId);
-        return ResponseEntity.ok(cars);
-    }
-
-
 }

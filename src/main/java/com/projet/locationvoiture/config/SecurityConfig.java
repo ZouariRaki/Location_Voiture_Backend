@@ -36,13 +36,13 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .csrf(csrf -> csrf.disable()) // Disable CSRF
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**","/api/car/**","/api/agences/**","/api/admin/**","/api/reservations/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/agences/**","/api/admin/**").hasRole("ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyRole("AGENCE", "ClIENT", "ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.GET, "/api/car/**").hasAnyRole("AGENCE", "ClIENT", "ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.PUT, "/api/agences/**").hasRole("ADMINISTRATEUR")
+                        .requestMatchers("/api/auth/**", "/api/car/**", "/api/agences/**", "/api/reservations/**", "/api/user/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/agences/**").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.PUT, "/api/agences/**").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/**", "/api/user/**").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyAuthority("AGENCE", "CLIENT", "ADMINISTRATEUR")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

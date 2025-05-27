@@ -1,5 +1,6 @@
 package com.projet.locationvoiture.dto;
 
+import com.projet.locationvoiture.entity.AccountStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,5 +13,8 @@ public class UserDto {
     private String nom;
     private String prenom;
     private String email;
+    private String telephone;
+    private boolean enabled;
+    private AccountStatus status;
     private Set<String> roles;
 }

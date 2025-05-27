@@ -1,11 +1,7 @@
 package com.projet.locationvoiture.services.agence;
-
 import com.projet.locationvoiture.dto.AgenceDto;
-import com.projet.locationvoiture.dto.CarDto;
 import com.projet.locationvoiture.entity.Agence;
-import com.projet.locationvoiture.entity.Car;
 import com.projet.locationvoiture.repository.AgenceRepository;
-import com.projet.locationvoiture.repository.CarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,30 +14,6 @@ import java.util.Optional;
 public class AgenceService {
 
     private final AgenceRepository agenceRepository;
-    private final CarRepository carRepository;
-    public boolean addCarToAgence(CarDto carDto, Long agenceId) throws IOException {
-        Optional<Agence> agenceOpt = agenceRepository.findById(agenceId);
-        if (agenceOpt.isEmpty()) {
-            return false;
-        }
-        Car car = new Car();
-        car.setMarque(carDto.getMarque());
-        car.setModele(carDto.getModele());
-        car.setAnnee(carDto.getAnnee());
-        car.setType(carDto.getType());
-        car.setCarburant(carDto.getCarburant());
-        car.setTransmission(carDto.getTransmission());
-        car.setSieges(carDto.getSieges());
-        car.setPortes(carDto.getPortes());
-        car.setClimatisation(carDto.isClimatisation());
-        car.setPrixJour(carDto.getPrixJour());
-        car.setCaution(carDto.getCaution());
-        car.setImage(carDto.getImage().getBytes());
-        car.setAgence(agenceOpt.get());
-
-        carRepository.save(car);
-        return true;
-    }
 
     public boolean addAgence(AgenceDto dto) throws IOException {
         try {

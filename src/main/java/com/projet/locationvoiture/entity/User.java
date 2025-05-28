@@ -42,7 +42,7 @@ public class User implements UserDetails {
     private Agence agence;
     private boolean enabled = false;
     @Enumerated(EnumType.STRING)
-    private AccountStatus status = AccountStatus.PENDING;
+    private AccountStatus status ;
     private String verificationToken;
     private String resetToken;
     private Date resetTokenExpiry;

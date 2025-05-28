@@ -39,8 +39,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/car/**", "/api/agences/**", "/api/reservations/**", "/api/user/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/agences/**").hasAuthority("ADMINISTRATEUR")
-                        .requestMatchers(HttpMethod.PUT, "/api/agences/**").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.POST, "/api/auth/admin/add-agence").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.PUT, "/api/auth/**").hasAuthority("ADMINISTRATEUR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/auth/agence/**").hasAuthority("ADMINISTRATEUR")                        .requestMatchers(HttpMethod.PUT, "/api/agences/**").hasAuthority("ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.GET, "/api/admin/**", "/api/user/**").hasAuthority("ADMINISTRATEUR")
                         .requestMatchers(HttpMethod.POST, "/api/car/**").hasAnyAuthority("AGENCE", "CLIENT", "ADMINISTRATEUR")
                         .anyRequest().authenticated()

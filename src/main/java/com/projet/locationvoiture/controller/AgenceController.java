@@ -5,6 +5,7 @@ import com.projet.locationvoiture.dto.CarDto;
 import com.projet.locationvoiture.entity.Agence;
 import com.projet.locationvoiture.entity.Car;
 import com.projet.locationvoiture.services.agence.AgenceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,37 +22,10 @@ public class AgenceController {
 
     private final AgenceService agenceService;
 
-    @PostMapping("add")
-    public ResponseEntity<?> addAgence(@ModelAttribute AgenceDto dto) throws IOException {
-        boolean success = agenceService.addAgence(dto);
-        return success ? ResponseEntity.status(HttpStatus.CREATED).build()
-                : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    }
-
-    @GetMapping("all")
-    public ResponseEntity<List<Agence>> getAll() {
-        return ResponseEntity.ok(agenceService.getAllAgences());
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity<Agence> getById(@PathVariable Long id) {
-        Optional<Agence> agence = agenceService.getAgenceById(id);
-        return agence.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PutMapping("update/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @ModelAttribute AgenceDto dto) throws IOException {
-        boolean success = agenceService.updateAgence(id, dto);
-        return success ? ResponseEntity.ok().build()
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-
-    @DeleteMapping("delete/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        boolean success = agenceService.deleteAgence(id);
-        return success ? ResponseEntity.noContent().build()
-                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    @PostMapping("/add")
+    public ResponseEntity<AgenceDto> addAgence(@Valid @ModelAttribute AgenceDto dto) throws IOException {
+        AgenceDto createdAgence = agenceService.addAgence(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdAgence);
     }
 
 

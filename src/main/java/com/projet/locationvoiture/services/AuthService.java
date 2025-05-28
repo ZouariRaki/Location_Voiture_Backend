@@ -7,6 +7,9 @@ import com.projet.locationvoiture.mail.EmailService;
 import com.projet.locationvoiture.repository.AgenceRepository;
 import com.projet.locationvoiture.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,7 +30,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AgenceRepository agenceRepository;
-
+    @PersistenceContext
+    private EntityManager entityManager;
     @PostConstruct
     public void createAdminAccount() {
         boolean adminExists = userRepository.findAll().stream()
@@ -225,6 +229,170 @@ public class AuthService {
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         userRepository.save(user);
+    }
+
+    public void adminAddAgence(AgenceDto request) {
+        // Vérifier si l'email existe déjà
+        userRepository.findByEmail(request.getEmail())
+                .ifPresent(user -> {
+                    throw new EmailAlreadyExistsException("L'email " + request.getEmail() + " est déjà utilisé");
+                });
+
+        // Créer un nouvel utilisateur avec le rôle AGENCE
+        User user = User.builder()
+                .nom(request.getNom())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getTelephone())) // Utiliser le téléphone comme mot de passe initial
+                .roles(Set.of(new Role(ERole.AGENCE)))
+                .adresse(request.getAdresse())
+                .telephone(request.getTelephone())
+                .enabled(true) // Activer immédiatement
+                .status(AccountStatus.APPROVED)
+                .build();
+
+        userRepository.save(user);
+
+        // Créer l'agence associée
+        Agence agence = new Agence();
+        agence.setNom(request.getNom());
+        agence.setAdresse(request.getAdresse());
+        agence.setEmail(request.getEmail());
+        agence.setTelephone(request.getTelephone());
+        agence.setDescription(request.getDescription());
+        agence.setUser(user);
+
+        // Traiter le logo
+        try {
+            MultipartFile logoFile = request.getLogo();
+            if (logoFile != null && !logoFile.isEmpty()) {
+                byte[] logoBytes = logoFile.getBytes();
+                agence.setLogo(logoBytes);
+            }
+        } catch (IOException e) {
+            userRepository.delete(user); // Rollback en cas d'erreur
+            throw new RuntimeException("Erreur lors du traitement du logo", e);
+        }
+
+        agenceRepository.save(agence);
+
+        // Envoyer un email de bienvenue avec les informations de connexion
+        String subject = "Création de votre compte agence";
+        String message = String.format(
+                "Bonjour %s,\n\nVotre compte agence a été créé avec succès.\n\n" +
+                        "Vos identifiants de connexion sont :\n" +
+                        "- Email : %s\n" +
+                        "- Mot de passe temporaire : %s\n\n" +
+                        "Veuillez modifier votre mot de passe après votre première connexion.\n\nCordialement,\nL'équipe Location Voiture",
+                user.getNom(), user.getEmail(), user.getTelephone()
+        );
+
+        emailService.sendSimpleMail(user.getEmail(), subject, message);
+    }
+    public void adminUpdateAgence(Long agenceId, AgenceDto request) {
+        // Find the agency and associated user
+        Agence agence = agenceRepository.findById(agenceId)
+                .orElseThrow(() -> new RuntimeException("Agence non trouvée avec l'ID: " + agenceId));
+        User user = agence.getUser();
+        if (user == null) {
+            throw new RuntimeException("Utilisateur associé à l'agence non trouvé");
+        }
+
+        // Check if the new email is already used by another user
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            userRepository.findByEmail(request.getEmail())
+                    .ifPresent(u -> {
+                        throw new EmailAlreadyExistsException("L'email " + request.getEmail() + " est déjà utilisé");
+                    });
+        }
+
+        // Update user fields if provided
+        if (request.getNom() != null) {
+            user.setNom(request.getNom());
+            agence.setNom(request.getNom());
+        }
+        if (request.getAdresse() != null) {
+            user.setAdresse(request.getAdresse());
+            agence.setAdresse(request.getAdresse());
+        }
+        if (request.getTelephone() != null) {
+            user.setTelephone(request.getTelephone());
+            agence.setTelephone(request.getTelephone());
+            // Update password to match new telephone (as per your add logic)
+            user.setPassword(passwordEncoder.encode(request.getTelephone()));
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+            agence.setEmail(request.getEmail());
+        }
+        if (request.getDescription() != null) {
+            agence.setDescription(request.getDescription());
+        }
+
+        // Handle logo update
+        if (request.getLogo() != null && !request.getLogo().isEmpty()) {
+            try {
+                byte[] logoBytes = request.getLogo().getBytes();
+                agence.setLogo(logoBytes);
+            } catch (IOException e) {
+                throw new RuntimeException("Erreur lors du traitement du logo", e);
+            }
+        }
+
+        // Save updated entities
+        userRepository.save(user);
+        agenceRepository.save(agence);
+
+        // Send email notification about the update
+        String subject = "Mise à jour de votre compte agence";
+        String message = String.format(
+                "Bonjour %s,\n\nVotre compte agence a été mis à jour.\n\n" +
+                        "Nouveaux détails :\n" +
+                        "- Nom : %s\n" +
+                        "- Email : %s\n" +
+                        "- Téléphone : %s\n\n" +
+                        "Si vous avez modifié votre téléphone, votre mot de passe temporaire est maintenant votre nouveau numéro de téléphone.\n" +
+                        "Veuillez modifier votre mot de passe après votre prochaine connexion.\n\nCordialement,\nL'équipe Location Voiture",
+                user.getNom(), user.getNom(), user.getEmail(), user.getTelephone()
+        );
+        emailService.sendSimpleMail(user.getEmail(), subject, message);
+    }
+
+    @Transactional
+    public void adminDeleteAgence(Long agenceId) {
+        // Find the agency
+        Agence agence = agenceRepository.findById(agenceId)
+                .orElseThrow(() -> new RuntimeException("Agence non trouvée avec l'ID: " + agenceId));
+        User user = agence.getUser();
+        if (user == null) {
+            throw new RuntimeException("Utilisateur associé à l'agence non trouvé");
+        }
+
+        // Clear bidirectional relationship (if exists)
+        if (user.getAgence() != null) {
+            user.setAgence(null); // Assuming User has a field @OneToOne private Agence agence
+            userRepository.save(user); // Persist the change
+        }
+
+        // Delete agency and flush to ensure it's removed
+        agenceRepository.delete(agence);
+        entityManager.flush();
+
+        // Delete user
+        userRepository.delete(user);
+
+        // Send email notification
+        String subject = "Suppression de votre compte agence";
+        String message = String.format(
+                "Bonjour %s,\n\nVotre compte agence a été supprimé.\n\n" +
+                        "Si cela n'était pas intentionnel, veuillez contacter notre support.\n\nCordialement,\nL'équipe Location Voiture",
+                user.getNom()
+        );
+        emailService.sendSimpleMail(user.getEmail(), subject, message);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
     }
 
 
